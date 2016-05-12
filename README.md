@@ -1,0 +1,2 @@
+# VerticalRollingTextView
+竖直方向无限循环滚动显示文本的控件
