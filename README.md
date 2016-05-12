@@ -3,7 +3,7 @@
 
 **非常轻量级,只有一个类,不到200行代码,不依赖任何第三方!!!**
 
-![image](https://github.com/shubowen/pullLayout/blob/master/app/image.gif)
+![image](https://github.com/shubowen/VerticalRollingTextView/blob/master/app/image.gif)
 
 **使用方法:**
 
