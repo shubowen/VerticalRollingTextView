@@ -3,6 +3,9 @@
     <declare-styleable name="VerticalRollingTextView">
         <attr name="android:textColor"/>
         <attr name="android:textSize"/>
+        <attr name="android:duration"/>
+        <!--动画间隔-->
+        <attr name="animInterval" format="integer"/>
     </declare-styleable>
 </resources>
 

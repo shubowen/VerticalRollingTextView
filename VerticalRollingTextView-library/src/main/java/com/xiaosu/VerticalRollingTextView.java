@@ -35,10 +35,16 @@ public class VerticalRollingTextView extends View {
     private final float mTextTopToAscentOffset;
     private float mOffset;
 
-    private Animation mAnimation;
+    private InternalAnimation mAnimation = new InternalAnimation();
 
     /*防止动画结束的回调触发以后动画继续进行出现的错乱问题*/
     private boolean mAnimationEnded;
+
+    private boolean mIsRunning;
+    /*动画时间*/
+    private int mDuration = 1000;
+    /*动画间隔*/
+    private int mAnimInterval = 2000;
 
     public VerticalRollingTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -46,14 +52,23 @@ public class VerticalRollingTextView extends View {
         mPaint.setColor(Color.BLACK);
         mPaint.setTypeface(Typeface.DEFAULT);
 
+        parseAttrs(context, attrs);
+
+        Paint.FontMetricsInt metricsInt = mPaint.getFontMetricsInt();
+        mTextTopToAscentOffset = metricsInt.ascent - metricsInt.top;
+
+        mAnimation.setDuration(mDuration);
+    }
+
+    private void parseAttrs(Context context, AttributeSet attrs) {
         float density = getResources().getDisplayMetrics().density;
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
         mPaint.setColor(typedArray.getColor(R.styleable.VerticalRollingTextView_android_textColor, Color.BLACK));
         mPaint.setTextSize(typedArray.getDimensionPixelOffset(R.styleable.VerticalRollingTextView_android_textSize, (int) (density * 14)));
-        typedArray.recycle();
+        mDuration = typedArray.getInt(R.styleable.VerticalRollingTextView_android_duration, mDuration);
+        mAnimInterval = typedArray.getInt(R.styleable.VerticalRollingTextView_animInterval, mAnimInterval);
 
-        Paint.FontMetricsInt metricsInt = mPaint.getFontMetricsInt();
-        mTextTopToAscentOffset = metricsInt.ascent - metricsInt.top;
+        typedArray.recycle();
     }
 
     @Override
@@ -71,6 +86,7 @@ public class VerticalRollingTextView extends View {
             mPaint.getTextBounds(text1, 0, text1.length(), bounds);
             mOffset = (getHeight() + bounds.height()) * 0.5f;
             mOrgOffsetY = mCurrentOffsetY = mOffset - mTextTopToAscentOffset;
+            mAnimation.updateValue(mOrgOffsetY, -2 * mTextTopToAscentOffset);
         }
 
         canvas.drawText(text1, 0, mCurrentOffsetY, mPaint);
@@ -80,33 +96,19 @@ public class VerticalRollingTextView extends View {
     public void setDataSetAdapter(DataSetAdapter dataSetAdapter) {
         mDataSetAdapter = dataSetAdapter;
         confirmNextIndex();
+        invalidate();
     }
 
     /**
      * 开始转动,界面可见的时候调用
      */
     public void run() {
-
-        if (null != mAnimation && !mAnimation.hasEnded()) {
+        if (mIsRunning) {
             return;
         }
 
-        final float start = mCurrentOffsetY;
-        final float end = -2 * mTextTopToAscentOffset;
-        mAnimation = new Animation() {
-            @Override
-            protected void applyTransformation(float interpolatedTime, Transformation t) {
-                if (mAnimationEnded) return;
-
-                mCurrentOffsetY = evaluate(interpolatedTime, start, end);
-                if (mCurrentOffsetY == end) {
-                    animationEnd();
-                }
-                postInvalidate();
-            }
-        };
-
-        mAnimation.setDuration(1000);
+        mIsRunning = true;
+        mAnimation.updateValue(mCurrentOffsetY, -2 * mTextTopToAscentOffset);
         post(mRollingTask);
     }
 
@@ -114,13 +116,14 @@ public class VerticalRollingTextView extends View {
      * @return true代表正在转动
      */
     public boolean isRunning() {
-        return null != mAnimation && !mAnimation.hasEnded();
+        return mIsRunning;
     }
 
     /**
      * 停止转动,界面不可见的时候调用
      */
     public void stop() {
+        mIsRunning = false;
         removeCallbacks(mRollingTask);
     }
 
@@ -129,7 +132,7 @@ public class VerticalRollingTextView extends View {
         public void run() {
             mAnimationEnded = false;
             startAnimation(mAnimation);
-            postDelayed(this, 2000);
+            postDelayed(this, mAnimInterval);
         }
     };
 
@@ -193,6 +196,29 @@ public class VerticalRollingTextView extends View {
 
     public interface OnItemClickListener {
         void onItemClick(VerticalRollingTextView view, int index);
+    }
+
+    class InternalAnimation extends Animation {
+
+        float startValue;
+        float endValue;
+
+        @Override
+        protected void applyTransformation(float interpolatedTime, Transformation t) {
+            if (mAnimationEnded) return;
+
+            mCurrentOffsetY = evaluate(interpolatedTime, startValue, endValue);
+            if (mCurrentOffsetY == endValue) {
+                animationEnd();
+            }
+            postInvalidate();
+        }
+
+        public void updateValue(float startValue, float endValue) {
+            this.startValue = startValue;
+            this.endValue = endValue;
+        }
+
     }
 
 }
