@@ -1,4 +1,4 @@
-package com.xiaosu.demo;
+package com.xiaosu;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -12,9 +12,6 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * 作者：疏博文 创建于 2016-05-12 15:05
  * 邮箱：shubowen123@sina.cn
@@ -22,7 +19,7 @@ import java.util.List;
  */
 public class VerticalRollingTextView extends View {
 
-    List<String> texts = new ArrayList<>();
+    DataSetAdapter mDataSetAdapter;
 
     private final Paint mPaint;
 
@@ -62,12 +59,12 @@ public class VerticalRollingTextView extends View {
     @Override
     protected void onDraw(Canvas canvas) {
         // 绘制文本
-        if (texts == null || texts.isEmpty()) {
+        if (mDataSetAdapter == null || mDataSetAdapter.isEmpty()) {
             return;
         }
 
-        String text1 = texts.get(mCurrentIndex);
-        String text2 = texts.get(mNextIndex);
+        String text1 = mDataSetAdapter.getText(mCurrentIndex);
+        String text2 = mDataSetAdapter.getText(mNextIndex);
 
         //只需要进行一次测量
         if (mOrgOffsetY == -1) {
@@ -80,8 +77,8 @@ public class VerticalRollingTextView extends View {
         canvas.drawText(text2, 0, mCurrentOffsetY + mOffset + mTextTopToAscentOffset, mPaint);
     }
 
-    public void setTexts(List<String> texts) {
-        this.texts = texts;
+    public void setDataSetAdapter(DataSetAdapter dataSetAdapter) {
+        mDataSetAdapter = dataSetAdapter;
         confirmNextIndex();
     }
 
@@ -102,7 +99,7 @@ public class VerticalRollingTextView extends View {
                 if (mAnimationEnded) return;
 
                 mCurrentOffsetY = evaluate(interpolatedTime, start, end);
-                if (mCurrentOffsetY == end){
+                if (mCurrentOffsetY == end) {
                     animationEnd();
                 }
                 postInvalidate();
@@ -141,7 +138,7 @@ public class VerticalRollingTextView extends View {
         //1.角标+1
         mCurrentIndex++;
         //2.计算出正确的角标
-        mCurrentIndex = mCurrentIndex < texts.size() ? mCurrentIndex : mCurrentIndex % texts.size();
+        mCurrentIndex = mCurrentIndex < mDataSetAdapter.getItemCount() ? mCurrentIndex : mCurrentIndex % mDataSetAdapter.getItemCount();
         //3.计算下一个待显示文字角标
         confirmNextIndex();
         //3.位置复位
@@ -165,7 +162,7 @@ public class VerticalRollingTextView extends View {
         //3.计算第二个角标
         mNextIndex = mCurrentIndex + 1;
         //4.计算出正确的第二个角标
-        mNextIndex = mNextIndex < texts.size() ? mNextIndex : 0;
+        mNextIndex = mNextIndex < mDataSetAdapter.getItemCount() ? mNextIndex : 0;
     }
 
     /**
@@ -178,6 +175,24 @@ public class VerticalRollingTextView extends View {
      */
     float evaluate(float fraction, float startValue, float endValue) {
         return startValue + fraction * (endValue - startValue);
+    }
+
+    @Override
+    public void setOnClickListener(OnClickListener l) {
+
+    }
+
+    public void setOnItemClickListener(final OnItemClickListener onItemClickListener) {
+        super.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                onItemClickListener.onItemClick(VerticalRollingTextView.this, mCurrentIndex);
+            }
+        });
+    }
+
+    public interface OnItemClickListener {
+        void onItemClick(VerticalRollingTextView view, int index);
     }
 
 }

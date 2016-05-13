@@ -19,7 +19,7 @@
             android:layout_marginLeft="15dp"
             android:src="@mipmap/gd_xiaoxi"/>
 
-        <com.xiaosu.demo.VerticalRollingTextView
+        <com.xiaosu.VerticalRollingTextView
             android:id="@+id/verticalRollingView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

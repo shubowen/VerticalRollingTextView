@@ -1,0 +1,22 @@
+apply plugin: 'com.android.library'
+apply plugin: 'com.novoda.bintray-release'
+
+android {
+    compileSdkVersion 23
+    buildToolsVersion "23.0.2"
+
+    defaultConfig {
+        minSdkVersion 9
+        targetSdkVersion 23
+        versionCode 1
+        versionName "1.1"
+    }
+}
+publish {
+    userOrg = 'xiaosu'
+    groupId = 'com.xiaosu'
+    artifactId = 'VerticalRollingTextView'
+    publishVersion = '1.1.0'
+    desc = '竖直方向无限循环滚动显示文本的控件'
+    website = 'https://github.com/shubowen/pullLayout'
+}
