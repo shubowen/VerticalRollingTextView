@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <declare-styleable name="VerticalRollingTextView">
-        <attr name="text_color" format="color"/>
+        <attr name="android:textColor"/>
         <attr name="android:textSize"/>
     </declare-styleable>
 </resources>

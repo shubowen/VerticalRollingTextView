@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.xiaosu.DataSetAdapter;
 import com.xiaosu.VerticalRollingTextView;
@@ -14,7 +15,7 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements VerticalRollingTextView.OnItemClickListener {
 
     String[] mStrs = {
             "君不见，黄河之水天上来，奔流到海不复回",
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
                 return s;
             }
         });
+        mVerticalRollingView.setOnItemClickListener(this);
     }
 
     @OnClick(R.id.button)
@@ -56,4 +58,8 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onItemClick(VerticalRollingTextView view, int index) {
+        Toast.makeText(MainActivity.this, mStrs[index], Toast.LENGTH_SHORT).show();
+    }
 }

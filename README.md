@@ -1,5 +1,5 @@
 # VerticalRollingTextView
-竖直方向无限循环滚动显示文本的控件
+竖直方向无限循环滚动显示单行文本的控件
 
 **非常轻量级,直接继承View实现,使用Paint绘制文本,不依赖任何第三方!!!**
 
@@ -46,4 +46,23 @@
 4.暂停:
 
     mVerticalRollingView.stop();
+
+5.设置点击监听:
+
+    mVerticalRollingView.setOnItemClickListener(this);
+
+6.点击回调
+    
+    public void onItemClick(VerticalRollingTextView view, int index) {
+        //index是当前条目的角标
+    }
+
+7.可以设置文字的大小:
+
+    android:textSize="16dp"
+    
+8.可以设置文字的颜色:
+
+    android:textColor="#FF0000"
+
     

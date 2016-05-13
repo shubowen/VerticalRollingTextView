@@ -20,6 +20,8 @@
             android:src="@mipmap/gd_xiaoxi"/>
 
         <com.xiaosu.VerticalRollingTextView
+            android:textColor="#FF0000"
+            android:textSize="16dp"
             android:id="@+id/verticalRollingView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"

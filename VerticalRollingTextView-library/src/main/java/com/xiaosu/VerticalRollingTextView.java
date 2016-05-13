@@ -48,7 +48,7 @@ public class VerticalRollingTextView extends View {
 
         float density = getResources().getDisplayMetrics().density;
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
-        mPaint.setColor(typedArray.getColor(R.styleable.VerticalRollingTextView_text_color, Color.BLACK));
+        mPaint.setColor(typedArray.getColor(R.styleable.VerticalRollingTextView_android_textColor, Color.BLACK));
         mPaint.setTextSize(typedArray.getDimensionPixelOffset(R.styleable.VerticalRollingTextView_android_textSize, (int) (density * 14)));
         typedArray.recycle();
 
