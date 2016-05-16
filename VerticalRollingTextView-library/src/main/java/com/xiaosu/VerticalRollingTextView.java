@@ -40,7 +40,7 @@ public class VerticalRollingTextView extends View {
     /*防止动画结束的回调触发以后动画继续进行出现的错乱问题*/
     private boolean mAnimationEnded;
 
-    private boolean mIsRunning;
+    private boolean isRunning;
     /*动画时间*/
     private int mDuration = 1000;
     /*动画间隔*/
@@ -103,11 +103,11 @@ public class VerticalRollingTextView extends View {
      * 开始转动,界面可见的时候调用
      */
     public void run() {
-        if (mIsRunning) {
+        if (isRunning) {
             return;
         }
 
-        mIsRunning = true;
+        isRunning = true;
         mAnimation.updateValue(mCurrentOffsetY, -2 * mTextTopToAscentOffset);
         post(mRollingTask);
     }
@@ -116,14 +116,14 @@ public class VerticalRollingTextView extends View {
      * @return true代表正在转动
      */
     public boolean isRunning() {
-        return mIsRunning;
+        return isRunning;
     }
 
     /**
      * 停止转动,界面不可见的时候调用
      */
     public void stop() {
-        mIsRunning = false;
+        isRunning = false;
         removeCallbacks(mRollingTask);
     }
 

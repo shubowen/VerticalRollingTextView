@@ -30,7 +30,7 @@ public abstract class DataSetAdapter<T> {
     protected abstract String text(T t);
 
     public int getItemCount() {
-        return data.size();
+        return null == data || data.isEmpty() ? 0 : data.size();
     }
 
     public void setData(List<T> data) {
@@ -38,6 +38,6 @@ public abstract class DataSetAdapter<T> {
     }
 
     public boolean isEmpty() {
-        return data.isEmpty();
+        return null == data || data.isEmpty();
     }
 }

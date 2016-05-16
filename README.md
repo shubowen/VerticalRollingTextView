@@ -7,6 +7,10 @@
 
 **使用方法:**
 
+先在项目build.gradle中添加依赖:
+
+    compile 'com.xiaosu:VerticalRollingTextView:1.2.0'
+
 1.现在布局文件中声明
 
     <LinearLayout
@@ -57,12 +61,17 @@
         //index是当前条目的角标
     }
 
-7.可以设置文字的大小:
+7.可以在布局中设置的属性:
 
-    android:textSize="16dp"
-    
-8.可以设置文字的颜色:
-
-    android:textColor="#FF0000"
+    <declare-styleable name="VerticalRollingTextView">
+        <!--文字颜色-->
+        <attr name="android:textColor"/>
+        <!--文字大小-->
+        <attr name="android:textSize"/>
+        <!--滚动动画时长-->
+        <attr name="android:duration"/>
+        <!--两次动画之间的间隔-->
+        <attr name="animInterval" format="integer"/>
+    </declare-styleable>
 
     

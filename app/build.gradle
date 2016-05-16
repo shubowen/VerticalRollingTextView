@@ -24,6 +24,6 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:23.3.0'
     compile 'com.jakewharton:butterknife:8.0.1'
+    compile 'com.xiaosu:VerticalRollingTextView:1.2.0'
     apt 'com.jakewharton:butterknife-compiler:8.0.1'
-    compile project(':VerticalRollingTextView-library')
 }
