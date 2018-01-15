@@ -10,7 +10,7 @@ import java.util.List;
  */
 public abstract class DataSetAdapter<T> {
 
-    List<T> data = new ArrayList<>();
+    private List<T> data = new ArrayList<>();
 
     public DataSetAdapter() {
     }
@@ -23,11 +23,11 @@ public abstract class DataSetAdapter<T> {
      * @param index 当前角标
      * @return 待显示的字符串
      */
-    final public String getText(int index) {
+    final public CharSequence getText(int index) {
         return text(data.get(index));
     }
 
-    protected abstract String text(T t);
+    protected abstract CharSequence text(T t);
 
     public int getItemCount() {
         return null == data || data.isEmpty() ? 0 : data.size();

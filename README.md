@@ -1,7 +1,7 @@
 # VerticalRollingTextView
-竖直方向无限循环滚动显示单行文本的控件
+竖直方向无限循环滚动文本的控件
 
-**非常轻量级,直接继承View实现,使用Paint绘制文本,不依赖任何第三方!!!**
+**非常轻量级,直接继承View实现**
 
 ![image](https://github.com/shubowen/VerticalRollingTextView/blob/master/app/image.gif)
 
@@ -9,7 +9,7 @@
 
 先在项目build.gradle中添加依赖:
 
-    compile 'com.xiaosu:VerticalRollingTextView:1.2.0'
+    compile 'com.xiaosu:VerticalRollingTextView:1.3.0'
 
 1.现在布局文件中声明
 
@@ -35,11 +35,11 @@
     
 2.代码中设置数据集:
 
-    mVerticalRollingView.setDataSetAdapter(new DataSetAdapter<String>(Arrays.asList(mStrs)) {
+    mVerticalRollingView.setDataSetAdapter(new DataSetAdapter<CharSequence>(mDataSet) {
     
                 @Override
-                protected String text(String s) {
-                    return s;
+                protected CharSequence text(CharSequence charSequence) {
+                    return charSequence;
                 }
             });
     

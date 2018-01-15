@@ -5,9 +5,12 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.graphics.Rect;
-import android.graphics.Typeface;
+import android.support.v4.view.ViewCompat;
+import android.text.Layout;
+import android.text.StaticLayout;
+import android.text.TextPaint;
 import android.util.AttributeSet;
+import android.util.SparseArray;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
@@ -19,21 +22,14 @@ import android.view.animation.Transformation;
  */
 public class VerticalRollingTextView extends View {
 
-    DataSetAdapter mDataSetAdapter;
+    private DataSetAdapter mDataSetAdapter;
 
-    private final Paint mPaint;
+    private TextPaint mPaint;
 
     private int mCurrentIndex;
     private int mNextIndex;
 
-    Rect bounds = new Rect();
-
-    private float mCurrentOffsetY;
-
-    private float mOrgOffsetY = -1;
-
-    private final float mTextTopToAscentOffset;
-    private float mOffset;
+    private float mScrollY;
 
     private InternalAnimation mAnimation = new InternalAnimation();
 
@@ -46,25 +42,20 @@ public class VerticalRollingTextView extends View {
     /*动画间隔*/
     private int mAnimInterval = 2000;
 
+    private SparseArray<Layout> mLayoutArr = new SparseArray<>();
+    private int mTextColor;
+    private int mTextSize;
+
     public VerticalRollingTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        mPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        mPaint.setColor(Color.BLACK);
-        mPaint.setTypeface(Typeface.DEFAULT);
-
         parseAttrs(context, attrs);
-
-        Paint.FontMetricsInt metricsInt = mPaint.getFontMetricsInt();
-        mTextTopToAscentOffset = metricsInt.ascent - metricsInt.top;
-
-        mAnimation.setDuration(mDuration);
     }
 
     private void parseAttrs(Context context, AttributeSet attrs) {
         float density = getResources().getDisplayMetrics().density;
         TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
-        mPaint.setColor(typedArray.getColor(R.styleable.VerticalRollingTextView_android_textColor, Color.BLACK));
-        mPaint.setTextSize(typedArray.getDimensionPixelOffset(R.styleable.VerticalRollingTextView_android_textSize, (int) (density * 14)));
+        mTextColor = typedArray.getColor(R.styleable.VerticalRollingTextView_android_textColor, Color.BLACK);
+        mTextSize = typedArray.getDimensionPixelSize(R.styleable.VerticalRollingTextView_android_textSize, (int) (density * 14));
         mDuration = typedArray.getInt(R.styleable.VerticalRollingTextView_android_duration, mDuration);
         mAnimInterval = typedArray.getInt(R.styleable.VerticalRollingTextView_animInterval, mAnimInterval);
 
@@ -78,23 +69,54 @@ public class VerticalRollingTextView extends View {
             return;
         }
 
-        String text1 = mDataSetAdapter.getText(mCurrentIndex);
-        String text2 = mDataSetAdapter.getText(mNextIndex);
+        Layout cLayout = findLayoutByIndex(mCurrentIndex);
+        Layout nLayout = findLayoutByIndex(mNextIndex);
 
-        //只需要进行一次测量
-        if (mOrgOffsetY == -1) {
-            mPaint.getTextBounds(text1, 0, text1.length(), bounds);
-            mOffset = (getHeight() + bounds.height()) * 0.5f;
-            mOrgOffsetY = mCurrentOffsetY = mOffset - mTextTopToAscentOffset;
-            mAnimation.updateValue(mOrgOffsetY, -2 * mTextTopToAscentOffset);
+        float anchor = (getHeight() - cLayout.getHeight()) * 0.5f - mScrollY;
+
+        canvas.save();
+        canvas.translate(0, anchor);
+        cLayout.draw(canvas);
+        canvas.restore();
+
+        canvas.save();
+        canvas.translate(0, anchor + getHeight());
+        nLayout.draw(canvas);
+        canvas.restore();
+    }
+
+    private Layout findLayoutByIndex(int index) {
+
+        Layout layout = mLayoutArr.get(index);
+        if (null != layout) {
+            return layout;
         }
 
-        canvas.drawText(text1, 0, mCurrentOffsetY, mPaint);
-        canvas.drawText(text2, 0, mCurrentOffsetY + mOffset + mTextTopToAscentOffset, mPaint);
+        CharSequence cs = mDataSetAdapter.getText(index);
+
+        if (null == mPaint) {
+            mPaint = new TextPaint(Paint.ANTI_ALIAS_FLAG);
+            mPaint.setColor(mTextColor);
+            mPaint.setTextSize(mTextSize);
+        }
+
+        layout = new StaticLayout(
+                cs,
+                mPaint,
+                getWidth(),
+                Layout.Alignment.ALIGN_NORMAL,
+                1.0f,
+                0.0f,
+                false);
+
+        mLayoutArr.put(index, layout);
+
+        return layout;
     }
 
     public void setDataSetAdapter(DataSetAdapter dataSetAdapter) {
         mDataSetAdapter = dataSetAdapter;
+        mCurrentIndex = 0;
         confirmNextIndex();
         invalidate();
     }
@@ -108,8 +130,21 @@ public class VerticalRollingTextView extends View {
         }
 
         isRunning = true;
-        mAnimation.updateValue(mCurrentOffsetY, -2 * mTextTopToAscentOffset);
-        post(mRollingTask);
+        mAnimation.setDuration(mDuration);
+        if (ViewCompat.isLaidOut(this)) {
+            mAnimation.updateValue(0, getHeight());
+            postDelayed(mRollingTask, mDuration);
+        }
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        if (isRunning) {
+            removeCallbacks(mRollingTask);
+
+            mAnimation.updateValue(0, h);
+            postDelayed(mRollingTask, mDuration);
+        }
     }
 
     /**
@@ -120,7 +155,7 @@ public class VerticalRollingTextView extends View {
     }
 
     /**
-     * 停止转动,界面不可见的时候调用
+     * 停止转动,界面不可见的时候自动调用
      */
     public void stop() {
         isRunning = false;
@@ -137,7 +172,7 @@ public class VerticalRollingTextView extends View {
     };
 
 
-    public void animationEnd() {
+    private void animationEnd() {
         //1.角标+1
         mCurrentIndex++;
         //2.计算出正确的角标
@@ -145,7 +180,7 @@ public class VerticalRollingTextView extends View {
         //3.计算下一个待显示文字角标
         confirmNextIndex();
         //3.位置复位
-        mCurrentOffsetY = mOrgOffsetY;
+        mScrollY = 0;
         mAnimationEnded = true;
     }
 
@@ -156,6 +191,29 @@ public class VerticalRollingTextView extends View {
         if (isRunning()) {
             mAnimation.cancel();
         }
+    }
+
+    public void setCurrentIndex(int currentIndex) {
+        mCurrentIndex = currentIndex;
+    }
+
+    public void setTextColor(int textColor) {
+        mTextColor = textColor;
+    }
+
+    public void setTextSize(int textSize) {
+        mTextSize = textSize;
+    }
+
+    public void setDuration(int duration) {
+        mDuration = duration;
+        if (isRunning()) {
+            mAnimation.setDuration(duration);
+        }
+    }
+
+    public void setAnimInterval(int animInterval) {
+        mAnimInterval = animInterval;
     }
 
     /**
@@ -176,13 +234,13 @@ public class VerticalRollingTextView extends View {
      * @param endValue
      * @return
      */
-    float evaluate(float fraction, float startValue, float endValue) {
+    private float evaluate(float fraction, float startValue, float endValue) {
         return startValue + fraction * (endValue - startValue);
     }
 
     @Override
     public void setOnClickListener(OnClickListener l) {
-
+        throw new UnsupportedOperationException();
     }
 
     public void setOnItemClickListener(final OnItemClickListener onItemClickListener) {
@@ -198,7 +256,7 @@ public class VerticalRollingTextView extends View {
         void onItemClick(VerticalRollingTextView view, int index);
     }
 
-    class InternalAnimation extends Animation {
+    private class InternalAnimation extends Animation {
 
         float startValue;
         float endValue;
@@ -207,14 +265,14 @@ public class VerticalRollingTextView extends View {
         protected void applyTransformation(float interpolatedTime, Transformation t) {
             if (mAnimationEnded) return;
 
-            mCurrentOffsetY = evaluate(interpolatedTime, startValue, endValue);
-            if (mCurrentOffsetY == endValue) {
+            mScrollY = evaluate(interpolatedTime, startValue, endValue);
+            if (mScrollY == endValue) {
                 animationEnd();
             }
             postInvalidate();
         }
 
-        public void updateValue(float startValue, float endValue) {
+        void updateValue(float startValue, float endValue) {
             this.startValue = startValue;
             this.endValue = endValue;
         }
