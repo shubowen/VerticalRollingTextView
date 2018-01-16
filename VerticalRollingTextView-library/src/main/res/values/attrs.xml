@@ -9,6 +9,8 @@
         <attr name="android:duration"/>
         <!--两次动画之间的间隔-->
         <attr name="animInterval" format="integer"/>
+        <!--展示条目的个数-->
+        <attr name="itemCount" format="integer"/>
     </declare-styleable>
 </resources>
 

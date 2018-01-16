@@ -24,8 +24,16 @@ public class MainActivity extends AppCompatActivity implements VerticalRollingTe
 
     @BindView(R.id.verticalRollingView)
     VerticalRollingTextView mVerticalRollingView;
+
+    @BindView(R.id.verticalRollingView2)
+    VerticalRollingTextView mVerticalRollingView2;
+
+    @BindView(R.id.verticalRollingView3)
+    VerticalRollingTextView mVerticalRollingView3;
+
     @BindView(R.id.button)
     Button button;
+
     private List<CharSequence> mDataSet;
 
     @Override
@@ -52,6 +60,36 @@ public class MainActivity extends AppCompatActivity implements VerticalRollingTe
         };
 
         mDataSet = Arrays.asList(mStrs);
+
+        init();
+        init1();
+        init2();
+    }
+
+    private void init2() {
+        mVerticalRollingView3.setDataSetAdapter(new DataSetAdapter<CharSequence>(mDataSet) {
+
+            @Override
+            protected CharSequence text(CharSequence charSequence) {
+                return charSequence;
+            }
+        });
+        mVerticalRollingView3.setOnItemClickListener(this);
+    }
+
+    private void init1() {
+        mVerticalRollingView2.setDataSetAdapter(new DataSetAdapter<CharSequence>(mDataSet) {
+
+            @Override
+            protected CharSequence text(CharSequence charSequence) {
+                return charSequence;
+            }
+        });
+        mVerticalRollingView2.setOnItemClickListener(this);
+        mVerticalRollingView2.setItemCount(4);
+    }
+
+    private void init() {
         mVerticalRollingView.setDataSetAdapter(new DataSetAdapter<CharSequence>(mDataSet) {
 
             @Override
@@ -60,18 +98,25 @@ public class MainActivity extends AppCompatActivity implements VerticalRollingTe
             }
         });
         mVerticalRollingView.setOnItemClickListener(this);
-
-        operate(mVerticalRollingView);
     }
+
+    boolean rolling = false;
 
     @OnClick(R.id.button)
     void operate(View view) {
-        if (mVerticalRollingView.isRunning()) {
+
+        if (rolling) {
             mVerticalRollingView.stop();
+            mVerticalRollingView2.stop();
+            mVerticalRollingView3.stop();
             button.setText("滚动");
+            rolling = false;
         } else {
             mVerticalRollingView.run();
+            mVerticalRollingView2.run();
+            mVerticalRollingView3.run();
             button.setText("停止");
+            rolling = true;
         }
     }
 

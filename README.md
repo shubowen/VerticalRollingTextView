@@ -63,15 +63,17 @@
 
 7.可以在布局中设置的属性:
 
-    <declare-styleable name="VerticalRollingTextView">
-        <!--文字颜色-->
-        <attr name="android:textColor"/>
-        <!--文字大小-->
-        <attr name="android:textSize"/>
-        <!--滚动动画时长-->
-        <attr name="android:duration"/>
-        <!--两次动画之间的间隔-->
-        <attr name="animInterval" format="integer"/>
-    </declare-styleable>
+            <declare-styleable name="VerticalRollingTextView">
+                <!--文字颜色-->
+                <attr name="android:textColor"/>
+                <!--文字大小-->
+                <attr name="android:textSize"/>
+                <!--滚动动画时长-->
+                <attr name="android:duration"/>
+                <!--两次动画之间的间隔-->
+                <attr name="animInterval" format="integer"/>
+                <!--展示条目的个数-->
+                <attr name="itemCount" format="integer"/>
+            </declare-styleable>
 
     
