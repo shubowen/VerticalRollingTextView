@@ -5,7 +5,7 @@ import android.content.res.TypedArray;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.support.v4.view.ViewCompat;
+import android.os.Build;
 import android.text.BoringLayout;
 import android.text.Layout;
 import android.text.TextPaint;
@@ -166,9 +166,17 @@ public class VerticalRollingTextView extends View {
         }
 
         isRunning = true;
-        if (ViewCompat.isLaidOut(this)) {
+        if (canGetBounds()) {
             mAnimation.updateValue(getHeight());
             post(mRollingTask);
+        }
+    }
+
+    private boolean canGetBounds() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            return isLaidOut();
+        } else {
+            return getWidth() > 0 && getHeight() > 0;
         }
     }
 

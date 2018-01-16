@@ -13,15 +13,11 @@ android {
     }
 }
 
-dependencies {
-    provided 'com.android.support:appcompat-v7:25.3.1'
-}
-
 publish {
     userOrg = 'xiaosu'
     groupId = 'com.xiaosu'
     artifactId = 'VerticalRollingTextView'
-    publishVersion = '1.3.0'
+    publishVersion = '2.0.0'
     desc = '竖直方向无限循环滚动显示单行文本的控件'
     website = 'https://github.com/shubowen/VerticalRollingTextView'
 }
