@@ -146,8 +146,13 @@ public class VerticalRollingTextView extends View {
         return layout;
     }
 
-    public void setDataSetAdapter(DataSetAdapter dataSetAdapter) {
-        mDataSetAdapter = dataSetAdapter;
+    public void setDataSetAdapter(DataSetAdapter adapter) {
+
+        if (null == adapter) {
+            throw new RuntimeException("adapter不能为空");
+        }
+
+        mDataSetAdapter = adapter;
         mFirstVisibleIndex = 0;
         invalidate();
     }
