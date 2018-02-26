@@ -1,4 +1,4 @@
-package com.xiaosu;
+package com.xiaosu.view.text;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,1 +1,1 @@
-include ':app', ':VerticalRollingTextView-library'
+include ':app', ':library'

@@ -1,4 +1,4 @@
-package com.xiaosu;
+package com.xiaosu.view.text;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -9,6 +9,7 @@ import android.os.Build;
 import android.text.BoringLayout;
 import android.text.Layout;
 import android.text.TextPaint;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.SparseArray;
 import android.view.MotionEvent;
@@ -57,6 +58,7 @@ public class VerticalRollingTextView extends View {
 
     private OnItemClickListener listener;
     private float mDownY;
+    private TextUtils.TruncateAt mTruncateAt;
 
     public VerticalRollingTextView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -64,14 +66,31 @@ public class VerticalRollingTextView extends View {
     }
 
     private void parseAttrs(Context context, AttributeSet attrs) {
-        TypedArray typedArray = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
-        mTextColor = typedArray.getColor(R.styleable.VerticalRollingTextView_android_textColor, Color.BLACK);
-        mTextSize = typedArray.getDimensionPixelSize(R.styleable.VerticalRollingTextView_android_textSize, AUTO_SIZE);
-        mItemCount = typedArray.getInt(R.styleable.VerticalRollingTextView_itemCount, 1);
-        mDuration = typedArray.getInt(R.styleable.VerticalRollingTextView_android_duration, mDuration);
-        mAnimInterval = typedArray.getInt(R.styleable.VerticalRollingTextView_animInterval, mAnimInterval);
+        TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
+        mTextColor = arr.getColor(R.styleable.VerticalRollingTextView_android_textColor, Color.BLACK);
+        mTextSize = arr.getDimensionPixelSize(R.styleable.VerticalRollingTextView_android_textSize, AUTO_SIZE);
+        mItemCount = arr.getInt(R.styleable.VerticalRollingTextView_itemCount, 1);
+        mDuration = arr.getInt(R.styleable.VerticalRollingTextView_android_duration, mDuration);
+        mAnimInterval = arr.getInt(R.styleable.VerticalRollingTextView_animInterval, mAnimInterval);
 
-        typedArray.recycle();
+        int ellipsize = arr.getInt(R.styleable.VerticalRollingTextView_android_ellipsize, -1);
+
+        switch (ellipsize) {
+            case 1:
+                mTruncateAt = TextUtils.TruncateAt.START;
+                break;
+            case 2:
+                mTruncateAt = TextUtils.TruncateAt.MIDDLE;
+                break;
+            case 3:
+                mTruncateAt = TextUtils.TruncateAt.END;
+                break;
+            default:
+                mTruncateAt = null;
+                break;
+        }
+
+        arr.recycle();
     }
 
     @Override
@@ -139,7 +158,9 @@ public class VerticalRollingTextView extends View {
                 Layout.Alignment.ALIGN_NORMAL,
                 1.0f,
                 0.0f,
-                metrics, false);
+                metrics, false,
+                mTruncateAt,
+                getWidth());
 
         mLayoutArr.put(index, layout);
 

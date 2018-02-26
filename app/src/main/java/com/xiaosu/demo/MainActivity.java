@@ -10,8 +10,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import com.xiaosu.DataSetAdapter;
-import com.xiaosu.VerticalRollingTextView;
+import com.xiaosu.view.text.DataSetAdapter;
+import com.xiaosu.view.text.VerticalRollingTextView;
 
 import java.util.Arrays;
 import java.util.List;
