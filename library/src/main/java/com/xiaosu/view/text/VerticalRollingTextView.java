@@ -24,6 +24,13 @@ import android.view.animation.Transformation;
  */
 public class VerticalRollingTextView extends View {
 
+    private static final int[] ATTRS = new int[]{
+            android.R.attr.textSize,
+            android.R.attr.textColor,
+            android.R.attr.ellipsize,
+            android.R.attr.duration,
+    };
+
     private static final String TAG = "VerticalRollingTextView";
 
     private final static int AUTO_SIZE = -2;
@@ -61,19 +68,26 @@ public class VerticalRollingTextView extends View {
     private TextUtils.TruncateAt mTruncateAt;
 
     public VerticalRollingTextView(Context context, AttributeSet attrs) {
-        super(context, attrs);
-        parseAttrs(context, attrs);
+        this(context, attrs, 0);
     }
 
-    private void parseAttrs(Context context, AttributeSet attrs) {
-        TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
-        mTextColor = arr.getColor(R.styleable.VerticalRollingTextView_android_textColor, Color.BLACK);
-        mTextSize = arr.getDimensionPixelSize(R.styleable.VerticalRollingTextView_android_textSize, AUTO_SIZE);
-        mItemCount = arr.getInt(R.styleable.VerticalRollingTextView_itemCount, 1);
-        mDuration = arr.getInt(R.styleable.VerticalRollingTextView_android_duration, mDuration);
-        mAnimInterval = arr.getInt(R.styleable.VerticalRollingTextView_animInterval, mAnimInterval);
+    public VerticalRollingTextView(Context context, AttributeSet attrs, int defStyleAttr) {
+        super(context, attrs, defStyleAttr);
+        parseAttrs(context, attrs, defStyleAttr);
+    }
 
-        int ellipsize = arr.getInt(R.styleable.VerticalRollingTextView_android_ellipsize, -1);
+    private void parseAttrs(Context context, AttributeSet attrs, int defStyleAttr) {
+
+        final TypedArray a = context.obtainStyledAttributes(attrs, ATTRS, defStyleAttr, 0);
+        mTextSize = a.getDimensionPixelSize(0, AUTO_SIZE);
+        mTextColor = a.getColor(1, Color.BLACK);
+        int ellipsize = a.getInt(2, -1);
+        mDuration = a.getInt(3, mDuration);
+        a.recycle();
+
+        TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
+        mItemCount = arr.getInt(R.styleable.VerticalRollingTextView_itemCount, 1);
+        mAnimInterval = arr.getInt(R.styleable.VerticalRollingTextView_animInterval, mAnimInterval);
 
         switch (ellipsize) {
             case 1:
