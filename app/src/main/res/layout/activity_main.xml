@@ -27,6 +27,7 @@
             android:layout_marginLeft="10dp"
             android:duration="5000"
             android:ellipsize="end"
+            android:maxLines="3"
             android:textColor="#FF0000"
             android:textSize="16sp"
             app:animInterval="2000"/>

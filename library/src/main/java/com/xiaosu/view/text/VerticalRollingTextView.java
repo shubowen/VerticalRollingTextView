@@ -6,16 +6,20 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.os.Build;
-import android.text.BoringLayout;
 import android.text.Layout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.util.SparseArray;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.Transformation;
+
+import com.xiaosu.view.text.strategy.IStrategy;
+import com.xiaosu.view.text.strategy.MultiLineStrategy;
+import com.xiaosu.view.text.strategy.SingleLineStrategy;
 
 /**
  * 作者：疏博文 创建于 2016-05-12 15:05
@@ -24,17 +28,19 @@ import android.view.animation.Transformation;
  */
 public class VerticalRollingTextView extends View {
 
+    private IStrategy mStrategy;
+
     private static final int[] ATTRS = new int[]{
             android.R.attr.textSize,
             android.R.attr.textColor,
             android.R.attr.ellipsize,
-            android.R.attr.duration,
+            android.R.attr.maxLines,
+            android.R.attr.duration
     };
 
     private static final String TAG = "VerticalRollingTextView";
 
     private final static int AUTO_SIZE = -2;
-    private final static int FILL_PARENT = -1;
 
     private DataSetAdapter mDataSetAdapter;
 
@@ -55,7 +61,7 @@ public class VerticalRollingTextView extends View {
     /*动画间隔*/
     private int mAnimInterval = 2000;
 
-    private SparseArray<Layout> mLayoutArr = new SparseArray<>();
+    private SparseArray<LayoutWithTextSize> mLayoutArr = new SparseArray<>();
     private int mTextColor;
 
     private int mItemHeight;
@@ -64,8 +70,12 @@ public class VerticalRollingTextView extends View {
     private int mItemCount = 1;
 
     private OnItemClickListener listener;
+
     private float mDownY;
+
     private TextUtils.TruncateAt mTruncateAt;
+
+    private int mMaxLines;
 
     public VerticalRollingTextView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -82,7 +92,8 @@ public class VerticalRollingTextView extends View {
         mTextSize = a.getDimensionPixelSize(0, AUTO_SIZE);
         mTextColor = a.getColor(1, Color.BLACK);
         int ellipsize = a.getInt(2, -1);
-        mDuration = a.getInt(3, mDuration);
+        mMaxLines = a.getInt(3, -1);
+        mDuration = a.getInt(4, mDuration);
         a.recycle();
 
         TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
@@ -105,6 +116,8 @@ public class VerticalRollingTextView extends View {
         }
 
         arr.recycle();
+
+        mStrategy = mMaxLines == 1 ? new SingleLineStrategy() : new MultiLineStrategy();
     }
 
     @Override
@@ -120,7 +133,9 @@ public class VerticalRollingTextView extends View {
             index = index >= mDataSetAdapter.getItemCount() ?
                     (index % mDataSetAdapter.getItemCount()) : index;
 
-            Layout layout = findLayoutByIndex(index);
+            LayoutWithTextSize lt = findLayoutByIndex(index);
+            Layout layout = lt.layout;
+            mPaint.setTextSize(lt.textSize);
 
             float top = mItemHeight * cursor;
             float bottom = mItemHeight * (cursor + 1);
@@ -131,15 +146,18 @@ public class VerticalRollingTextView extends View {
                 continue;
             }
 
-            float dy = top + (mItemHeight - layout.getHeight()) * 0.5f - mScrollY;
+            int height = layout.getHeight();
+            float dy = top - mScrollY + (height < mItemHeight ? (mItemHeight - height) * 0.5f : 0);
 
             if (dy > getHeight()) {
 //                Log.d(TAG, "第" + cursor + "条超出可绘制区域，停止绘制");
                 break;
             }
 
+
             canvas.save();
             canvas.translate(0, dy);
+            canvas.clipRect(0, 0, getWidth(), mItemHeight);
             layout.draw(canvas);
             canvas.restore();
 //            Log.d(TAG, "绘制第" + cursor + "个条目");
@@ -148,11 +166,11 @@ public class VerticalRollingTextView extends View {
 
     }
 
-    private Layout findLayoutByIndex(int index) {
+    private LayoutWithTextSize findLayoutByIndex(int index) {
 
-        Layout layout = mLayoutArr.get(index);
-        if (null != layout) {
-            return layout;
+        LayoutWithTextSize lt = mLayoutArr.get(index);
+        if (null != lt) {
+            return lt;
         }
 
         CharSequence cs = mDataSetAdapter.getText(index);
@@ -163,22 +181,23 @@ public class VerticalRollingTextView extends View {
             mPaint.setTextSize(mTextSize);
         }
 
-        BoringLayout.Metrics metrics = BoringLayout.isBoring(cs, mPaint);
+        final float autoSizeMinTextSizeInPx = 12;
+        final float autoSizeMaxTextSizeInPx = mItemHeight * 0.6f;
+        final float autoSizeStepGranularityInPx = 2;//步进
 
-        layout = new BoringLayout(
-                cs,
-                mPaint,
-                getWidth(),
-                Layout.Alignment.ALIGN_NORMAL,
-                1.0f,
-                0.0f,
-                metrics, false,
-                mTruncateAt,
-                getWidth());
+        Log.d(TAG, "size:[" + autoSizeMinTextSizeInPx + " - " + autoSizeMaxTextSizeInPx + "]");
 
-        mLayoutArr.put(index, layout);
+        lt = mStrategy.getLayout(autoSizeMinTextSizeInPx, autoSizeMaxTextSizeInPx, autoSizeStepGranularityInPx,
+                mTextSize, getWidth(), mItemHeight, mPaint, mMaxLines, cs, mTruncateAt);
 
-        return layout;
+        mLayoutArr.put(index, lt);
+
+        return lt;
+    }
+
+    public static class LayoutWithTextSize {
+        public Layout layout;
+        public int textSize;
     }
 
     public void setDataSetAdapter(DataSetAdapter adapter) {
@@ -187,9 +206,12 @@ public class VerticalRollingTextView extends View {
             throw new RuntimeException("adapter不能为空");
         }
 
-        mDataSetAdapter = adapter;
-        mFirstVisibleIndex = 0;
-        invalidate();
+        if (null == mDataSetAdapter || adapter != mDataSetAdapter) {
+            mLayoutArr.clear();
+            mDataSetAdapter = adapter;
+            mFirstVisibleIndex = 0;
+            invalidate();
+        }
     }
 
     /**

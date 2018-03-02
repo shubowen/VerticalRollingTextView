@@ -68,6 +68,8 @@
                     <attr name="android:textColor"/>
                     <!--文字大小-->
                     <attr name="android:textSize"/>
+                    <!--每个条目显示的最大的行数-->
+                    <attr name="android:maxLines"/>
                     <!--文字过长处理-->
                     <attr name="android:ellipsize"/>
                     <!--滚动动画时长-->
