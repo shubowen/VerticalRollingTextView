@@ -113,8 +113,8 @@ public class MainActivity extends AppCompatActivity implements VerticalRollingTe
             rolling = false;
         } else {
             mVerticalRollingView.run();
-//            mVerticalRollingView2.run();
-//            mVerticalRollingView3.run();
+            mVerticalRollingView2.run();
+            mVerticalRollingView3.run();
             button.setText("停止");
             rolling = true;
         }

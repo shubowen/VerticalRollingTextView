@@ -9,7 +9,7 @@
 
 先在项目build.gradle中添加依赖:
 
-    compile 'com.xiaosu:VerticalRollingTextView:2.0.2'
+    compile 'com.xiaosu:VerticalRollingTextView:2.0.4'
 
 1.现在布局文件中声明
 
@@ -78,6 +78,10 @@
                     <attr name="animInterval" format="integer"/>
                     <!--展示条目的个数-->
                     <attr name="itemCount" format="integer"/>
+                    <!--多行显示时自适应文字的最大文字大小-->
+                    <attr name="maxTextSize" format="dimension"/>
+                    <!--多行显示时自适应文字的最小文字大小-->
+                    <attr name="minTextSize" format="dimension"/>
                 </declare-styleable>
 
     
