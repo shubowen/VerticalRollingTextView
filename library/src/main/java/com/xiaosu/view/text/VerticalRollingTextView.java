@@ -10,8 +10,8 @@ import android.text.Layout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.util.SparseArray;
+import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.animation.Animation;
@@ -76,6 +76,8 @@ public class VerticalRollingTextView extends View {
     private TextUtils.TruncateAt mTruncateAt;
 
     private int mMaxLines;
+    private int mMinTextSize;
+    private int mMaxTextSize;
 
     public VerticalRollingTextView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -98,6 +100,9 @@ public class VerticalRollingTextView extends View {
 
         TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
         mItemCount = arr.getInt(R.styleable.VerticalRollingTextView_itemCount, 1);
+        mMinTextSize = arr.getDimensionPixelSize(R.styleable.VerticalRollingTextView_minTextSize,
+                (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, getResources().getDisplayMetrics()));
+        mMaxTextSize = arr.getDimensionPixelSize(R.styleable.VerticalRollingTextView_maxTextSize, -1);
         mAnimInterval = arr.getInt(R.styleable.VerticalRollingTextView_animInterval, mAnimInterval);
 
         switch (ellipsize) {
@@ -181,13 +186,13 @@ public class VerticalRollingTextView extends View {
             mPaint.setTextSize(mTextSize);
         }
 
-        final float autoSizeMinTextSizeInPx = 12;
-        final float autoSizeMaxTextSizeInPx = mItemHeight * 0.6f;
+//        final float autoSizeMinTextSizeInPx = 12;
+        final float autoSizeMaxTextSizeInPx = mMaxTextSize == -1 ? mItemHeight * 0.6f : mMaxTextSize;
         final float autoSizeStepGranularityInPx = 2;//步进
 
-        Log.d(TAG, "size:[" + autoSizeMinTextSizeInPx + " - " + autoSizeMaxTextSizeInPx + "]");
+//        Log.d(TAG, "size:[" + autoSizeMinTextSizeInPx + " - " + autoSizeMaxTextSizeInPx + "]");
 
-        lt = mStrategy.getLayout(autoSizeMinTextSizeInPx, autoSizeMaxTextSizeInPx, autoSizeStepGranularityInPx,
+        lt = mStrategy.getLayout(mMinTextSize, autoSizeMaxTextSizeInPx, autoSizeStepGranularityInPx,
                 mTextSize, getWidth(), mItemHeight, mPaint, mMaxLines, cs, mTruncateAt);
 
         mLayoutArr.put(index, lt);
