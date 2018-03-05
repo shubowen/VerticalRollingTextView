@@ -87,6 +87,15 @@
     </LinearLayout>
 
     <Button
+        android:onClick="changeAdapter"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:layout_marginTop="30dp"
+        android:gravity="center"
+        android:text="切换Adpter"
+        android:textSize="15dp"/>
+
+    <Button
         android:id="@+id/button"
         android:layout_width="match_parent"
         android:layout_height="48dp"

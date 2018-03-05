@@ -24,4 +24,5 @@ public interface IStrategy {
                                                          CharSequence text,
                                                          TextUtils.TruncateAt mTruncateAt);
 
+    void reset();
 }

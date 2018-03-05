@@ -6,7 +6,7 @@ android {
     buildToolsVersion "25.0.3"
 
     defaultConfig {
-        minSdkVersion 9
+        minSdkVersion 14
         targetSdkVersion 25
         versionCode 1
         versionName "1.2"
@@ -17,7 +17,7 @@ publish {
     userOrg = 'xiaosu'
     groupId = 'com.xiaosu'
     artifactId = 'VerticalRollingTextView'
-    publishVersion = '2.0.4'
+    publishVersion = '2.0.5'
     desc = '竖直方向无限循环滚动显示单行文本的控件'
     website = 'https://github.com/shubowen/VerticalRollingTextView'
 }

@@ -59,11 +59,28 @@ public class MainActivity extends AppCompatActivity implements VerticalRollingTe
                 "岑夫子，丹丘生，将进酒，杯莫停"
         };
 
+
         mDataSet = Arrays.asList(mStrs);
 
         init();
         init1();
         init2();
+    }
+
+    public void changeAdapter(View view) {
+        CharSequence[] sequences = {
+                "太乙近天都，连山接海隅。",
+                "白云回望合，青霭入看无。",
+                "分野中峰变，阴晴众壑殊。",
+                "欲投人处宿，隔水问樵夫。"
+        };
+        mVerticalRollingView.setDataSetAdapterQuiet(new DataSetAdapter<CharSequence>(Arrays.asList(sequences)) {
+
+            @Override
+            protected CharSequence text(CharSequence charSequence) {
+                return charSequence;
+            }
+        });
     }
 
     private void init2() {

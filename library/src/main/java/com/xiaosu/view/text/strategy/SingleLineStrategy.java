@@ -45,4 +45,9 @@ public class SingleLineStrategy implements IStrategy {
         lt.textSize = wantTextSize;
         return lt;
     }
+
+    @Override
+    public void reset() {
+
+    }
 }

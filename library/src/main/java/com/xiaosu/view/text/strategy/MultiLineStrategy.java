@@ -74,6 +74,11 @@ public class MultiLineStrategy implements IStrategy {
         return lt;
     }
 
+    @Override
+    public void reset() {
+        mAutoSizeTextSizesInPx = new int[0];
+    }
+
     private void setupAutoSizeText(float autoSizeMinTextSizeInPx,
                                    float autoSizeMaxTextSizeInPx,
                                    float autoSizeStepGranularityInPx) {

@@ -1,5 +1,8 @@
 package com.xiaosu.view.text;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.animation.ValueAnimator;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
@@ -14,8 +17,6 @@ import android.util.SparseArray;
 import android.util.TypedValue;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.Transformation;
 
 import com.xiaosu.view.text.strategy.IStrategy;
 import com.xiaosu.view.text.strategy.MultiLineStrategy;
@@ -44,13 +45,14 @@ public class VerticalRollingTextView extends View {
 
     private DataSetAdapter mDataSetAdapter;
 
+    //平缓过度Adapter
+    private DataSetAdapter mTempAdapter;
+
     private TextPaint mPaint;
 
     private int mFirstVisibleIndex;
 
     private float mScrollY;
-
-    private InternalAnimation mAnimation;
 
     /*防止动画结束的回调触发以后动画继续进行出现的错乱问题*/
     private boolean mAnimationEnded;
@@ -64,10 +66,10 @@ public class VerticalRollingTextView extends View {
     private SparseArray<LayoutWithTextSize> mLayoutArr = new SparseArray<>();
     private int mTextColor;
 
-    private int mItemHeight;
+    private int itemHeight;
     private int mTextSize = AUTO_SIZE;
 
-    private int mItemCount = 1;
+    private int itemCount = 1;
 
     private OnItemClickListener listener;
 
@@ -78,6 +80,7 @@ public class VerticalRollingTextView extends View {
     private int mMaxLines;
     private int mMinTextSize;
     private int mMaxTextSize;
+    private ValueAnimator mAnim;
 
     public VerticalRollingTextView(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
@@ -99,7 +102,7 @@ public class VerticalRollingTextView extends View {
         a.recycle();
 
         TypedArray arr = context.obtainStyledAttributes(attrs, R.styleable.VerticalRollingTextView);
-        mItemCount = arr.getInt(R.styleable.VerticalRollingTextView_itemCount, 1);
+        itemCount = arr.getInt(R.styleable.VerticalRollingTextView_itemCount, 1);
         mMinTextSize = arr.getDimensionPixelSize(R.styleable.VerticalRollingTextView_minTextSize,
                 (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 12, getResources().getDisplayMetrics()));
         mMaxTextSize = arr.getDimensionPixelSize(R.styleable.VerticalRollingTextView_maxTextSize, -1);
@@ -142,27 +145,28 @@ public class VerticalRollingTextView extends View {
             Layout layout = lt.layout;
             mPaint.setTextSize(lt.textSize);
 
-            float top = mItemHeight * cursor;
-            float bottom = mItemHeight * (cursor + 1);
+            int height = layout.getHeight();
+            float itemBottom = itemHeight * (cursor + 1);
+            float textBottom = itemBottom - mScrollY + (height < itemHeight ? (itemHeight - height) * 0.5f : 0);
 
-            if (bottom - mScrollY < 0) {
+            if (textBottom < 0) {
 //                Log.d(TAG, "第" + cursor + "条在屏幕上方不可见区域，不绘制");
                 cursor++;
                 continue;
             }
 
-            int height = layout.getHeight();
-            float dy = top - mScrollY + (height < mItemHeight ? (mItemHeight - height) * 0.5f : 0);
+            float itemTop = itemHeight * cursor;
+            float textTop = itemTop - mScrollY + (height < itemHeight ? (itemHeight - height) * 0.5f : 0);
 
-            if (dy > getHeight()) {
+            if (textTop > getHeight()) {
 //                Log.d(TAG, "第" + cursor + "条超出可绘制区域，停止绘制");
                 break;
             }
 
 
             canvas.save();
-            canvas.translate(0, dy);
-            canvas.clipRect(0, 0, getWidth(), mItemHeight);
+            canvas.translate(0, textTop);
+            canvas.clipRect(0, 0, getWidth(), itemHeight);
             layout.draw(canvas);
             canvas.restore();
 //            Log.d(TAG, "绘制第" + cursor + "个条目");
@@ -186,14 +190,11 @@ public class VerticalRollingTextView extends View {
             mPaint.setTextSize(mTextSize);
         }
 
-//        final float autoSizeMinTextSizeInPx = 12;
-        final float autoSizeMaxTextSizeInPx = mMaxTextSize == -1 ? mItemHeight * 0.6f : mMaxTextSize;
+        final float autoSizeMaxTextSizeInPx = mMaxTextSize == -1 ? itemHeight * 0.6f : mMaxTextSize;
         final float autoSizeStepGranularityInPx = 2;//步进
 
-//        Log.d(TAG, "size:[" + autoSizeMinTextSizeInPx + " - " + autoSizeMaxTextSizeInPx + "]");
-
         lt = mStrategy.getLayout(mMinTextSize, autoSizeMaxTextSizeInPx, autoSizeStepGranularityInPx,
-                mTextSize, getWidth(), mItemHeight, mPaint, mMaxLines, cs, mTruncateAt);
+                mTextSize, getWidth(), itemHeight, mPaint, mMaxLines, cs, mTruncateAt);
 
         mLayoutArr.put(index, lt);
 
@@ -205,6 +206,11 @@ public class VerticalRollingTextView extends View {
         public int textSize;
     }
 
+    /**
+     * 会重置滚动距离胡数据，造成视觉突变，如果想要平滑过渡使用{@link VerticalRollingTextView#setDataSetAdapterQuiet(DataSetAdapter)}
+     *
+     * @param adapter 新的Adapter
+     */
     public void setDataSetAdapter(DataSetAdapter adapter) {
 
         if (null == adapter) {
@@ -212,11 +218,40 @@ public class VerticalRollingTextView extends View {
         }
 
         if (null == mDataSetAdapter || adapter != mDataSetAdapter) {
-            mLayoutArr.clear();
+            boolean run = isRunning;
+            if (run) stop();
             mDataSetAdapter = adapter;
-            mFirstVisibleIndex = 0;
-            invalidate();
+            reset();
+            if (run) run();
         }
+    }
+
+    /**
+     * 平滑到新的Adapter(目前是在滚动停止的时候更新新的数据)
+     *
+     * @param adapter 新的Adapter
+     */
+    public void setDataSetAdapterQuiet(DataSetAdapter adapter) {
+        // TODO: 2018/3/5 滚动的过程中更新，更加的平滑
+        if (null == adapter) {
+            throw new RuntimeException("adapter不能为空");
+        }
+
+        if (null == mDataSetAdapter || adapter != mDataSetAdapter) {
+            if (isRunning) {
+                mTempAdapter = adapter;
+            } else {
+                mDataSetAdapter = adapter;
+                reset();
+            }
+        }
+    }
+
+    private void reset() {
+        mScrollY = 0;
+        mLayoutArr.clear();
+        mStrategy.reset();
+        mFirstVisibleIndex = 0;
     }
 
     /**
@@ -227,14 +262,21 @@ public class VerticalRollingTextView extends View {
             return;
         }
 
-        if (null == mAnimation) {
-            mAnimation = new InternalAnimation();
-            mAnimation.setDuration(mDuration);
+        if (null == mAnim) {
+            mAnim = ValueAnimator.ofInt(0, getHeight());
+            mAnim.setDuration(mDuration);
+            mAnim.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                @Override
+                public void onAnimationUpdate(ValueAnimator animation) {
+                    mScrollY = (int) animation.getAnimatedValue();
+                    invalidate();
+                }
+            });
+            mAnim.addListener(new AnimListener());
         }
 
         isRunning = true;
         if (canGetBounds()) {
-            mAnimation.updateValue(getHeight());
             post(mRollingTask);
         }
     }
@@ -250,16 +292,15 @@ public class VerticalRollingTextView extends View {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
 
-        mItemHeight = h / mItemCount;
+        itemHeight = h / itemCount;
 
         if (AUTO_SIZE == mTextSize) {
-            mTextSize = Math.round(mItemHeight * 0.6f);
+            mTextSize = Math.round(itemHeight * 0.6f);
         }
 
         if (isRunning) {
             removeCallbacks(mRollingTask);
-
-            mAnimation.updateValue(h);
+            mAnim.setIntValues(0, h);
             postDelayed(mRollingTask, mAnimInterval);
         }
     }
@@ -282,7 +323,8 @@ public class VerticalRollingTextView extends View {
     Runnable mRollingTask = new Runnable() {
         @Override
         public void run() {
-            startAnimation(mAnimation);
+            mAnim.start();
+//            startAnimation(mAnimation);
         }
     };
 
@@ -290,13 +332,11 @@ public class VerticalRollingTextView extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(mRollingTask);
-        if (isRunning()) {
-            mAnimation.cancel();
-        }
+        if (mAnim.isRunning()) mAnim.cancel();
     }
 
     public void setItemCount(int itemCount) {
-        mItemCount = itemCount;
+        this.itemCount = itemCount;
     }
 
     public void setFirstVisibleIndex(int firstVisibleIndex) {
@@ -313,25 +353,11 @@ public class VerticalRollingTextView extends View {
 
     public void setDuration(int duration) {
         mDuration = duration;
-        if (isRunning()) {
-            mAnimation.setDuration(duration);
-        }
+        if (null != mAnim) mAnim.setDuration(duration);
     }
 
     public void setAnimInterval(int animInterval) {
         mAnimInterval = animInterval;
-    }
-
-    /**
-     * float估值器
-     *
-     * @param fraction
-     * @param startValue
-     * @param endValue
-     * @return
-     */
-    private float evaluate(float fraction, float startValue, float endValue) {
-        return startValue + fraction * (endValue - startValue);
     }
 
     @Override
@@ -361,8 +387,8 @@ public class VerticalRollingTextView extends View {
                     index = index >= mDataSetAdapter.getItemCount() ?
                             (index % mDataSetAdapter.getItemCount()) : index;
 
-                    float top = mItemHeight * cursor - mScrollY;
-                    float bottom = mItemHeight * (cursor + 1) - mScrollY;
+                    float top = itemHeight * cursor - mScrollY;
+                    float bottom = itemHeight * (cursor + 1) - mScrollY;
 
                     if (top < mDownY && bottom > mDownY) {
                         listener.onItemClick(this, index);
@@ -385,51 +411,23 @@ public class VerticalRollingTextView extends View {
         void onItemClick(VerticalRollingTextView view, int index);
     }
 
-    @Override
-    public void startAnimation(Animation animation) {
-        mAnimationEnded = false;
-        super.startAnimation(animation);
-    }
-
-    private class InternalAnimation extends Animation {
-
-        float endValue;
-
+    private class AnimListener extends AnimatorListenerAdapter {
         @Override
-        protected void applyTransformation(float interpolatedTime, Transformation t) {
-
-            if (interpolatedTime == 0 || mAnimationEnded) {
-                return;
+        public void onAnimationEnd(Animator animation) {
+            if (mTempAdapter == null) {
+                //1.角标+1
+                mFirstVisibleIndex += itemCount;
+                //2.计算出正确的角标
+                mFirstVisibleIndex = mFirstVisibleIndex < mDataSetAdapter.getItemCount() ?
+                        mFirstVisibleIndex : mFirstVisibleIndex % mDataSetAdapter.getItemCount();
+                //3.位置复位
+                mScrollY = 0;
+            } else {
+                mDataSetAdapter = mTempAdapter;
+                mTempAdapter = null;
+                reset();
             }
-
-            mScrollY = evaluate(interpolatedTime, 0, endValue);
-
-            invalidate();
-
-            if (interpolatedTime == 1.0f) {
-                animEnd();
-            }
+            if (isRunning) postDelayed(mRollingTask, mAnimInterval);
         }
-
-        void updateValue(float endValue) {
-            this.endValue = endValue;
-        }
-
-    }
-
-    private void animEnd() {
-        //1.角标+1
-        mFirstVisibleIndex += mItemCount;
-        //2.计算出正确的角标
-        mFirstVisibleIndex = mFirstVisibleIndex < mDataSetAdapter.getItemCount() ?
-                mFirstVisibleIndex : mFirstVisibleIndex % mDataSetAdapter.getItemCount();
-        //3.位置复位
-        mScrollY = 0;
-
-        mAnimation.cancel();
-
-        mAnimationEnded = true;
-
-        if (isRunning) postDelayed(mRollingTask, mAnimInterval);
     }
 }

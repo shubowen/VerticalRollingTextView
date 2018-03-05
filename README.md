@@ -9,7 +9,7 @@
 
 先在项目build.gradle中添加依赖:
 
-    compile 'com.xiaosu:VerticalRollingTextView:2.0.4'
+    compile 'com.xiaosu:VerticalRollingTextView:2.0.5'
 
 1.现在布局文件中声明
 
