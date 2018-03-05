@@ -1,14 +1,11 @@
 package com.xiaosu.view.text.strategy;
 
-import android.annotation.TargetApi;
-import android.os.Build;
 import android.text.Layout;
 import android.text.StaticLayout;
-import android.text.TextDirectionHeuristic;
-import android.text.TextDirectionHeuristics;
 import android.text.TextPaint;
 import android.text.TextUtils;
 
+import com.xiaosu.view.text.StaticLayoutHelper;
 import com.xiaosu.view.text.VerticalRollingTextView;
 
 import java.util.ArrayList;
@@ -66,6 +63,15 @@ public class MultiLineStrategy implements IStrategy {
                 bestSizeIndex = highIndex;
             }
         }
+
+        //没有找到最合适的字体
+        if (target == null) {
+            bestSizeIndex = 0;//使用最小的字体
+            target = StaticLayoutHelper.createStaticLayout(text, mPaint, width, Layout.Alignment.ALIGN_NORMAL,
+                    1.0f, 0.0f, false, TextUtils.TruncateAt.END, width,
+                    maxLines == -1 ? Integer.MAX_VALUE : maxLines);
+        }
+
 
         VerticalRollingTextView.LayoutWithTextSize lt = new VerticalRollingTextView.LayoutWithTextSize();
         lt.layout = target;
@@ -139,9 +145,13 @@ public class MultiLineStrategy implements IStrategy {
 
         mPaint.setTextSize(suggestedSizeInPx);
 
-        final StaticLayout layout = Build.VERSION.SDK_INT >= 23
-                ? createStaticLayoutForMeasuring(text, alignment, availableWidth)
-                : createStaticLayoutForMeasuringPre23(text, alignment, availableWidth);
+        final StaticLayout layout = StaticLayoutHelper.createStaticLayout(text, mPaint, availableWidth, alignment,
+                1.0f, 0.0f, false, TextUtils.TruncateAt.END, availableWidth,
+                maxLines == -1 ? Integer.MAX_VALUE : maxLines);
+
+        if (layout == null) {
+            return null;
+        }
 
         // Lines overflow.
         if (maxLines != -1 && layout.getLineCount() > maxLines) {
@@ -154,40 +164,6 @@ public class MultiLineStrategy implements IStrategy {
         }
 
         return layout;
-    }
-
-    @TargetApi(23)
-    private StaticLayout createStaticLayoutForMeasuring(CharSequence text,
-                                                        Layout.Alignment alignment,
-                                                        int availableWidth) {
-        final TextDirectionHeuristic textDirectionHeuristic = TextDirectionHeuristics.FIRSTSTRONG_LTR;
-
-        final StaticLayout.Builder layoutBuilder = StaticLayout.Builder.obtain(
-                text, 0, text.length(), mPaint, availableWidth);
-
-        return layoutBuilder.setAlignment(alignment)
-                .setLineSpacing(
-                        0.0f,
-                        1.0f)
-                .setIncludePad(false)
-//                .setBreakStrategy(mTextView.getBreakStrategy())
-//                .setHyphenationFrequency(mTextView.getHyphenationFrequency())
-                .setMaxLines(mMaxLines == -1 ? Integer.MAX_VALUE : mMaxLines)
-                .setTextDirection(textDirectionHeuristic)
-                .build();
-    }
-
-    @TargetApi(14)
-    private StaticLayout createStaticLayoutForMeasuringPre23(CharSequence text,
-                                                             Layout.Alignment alignment, int availableWidth) {
-
-        return new StaticLayout(text,
-                mPaint,
-                availableWidth,
-                alignment,
-                1.0f,
-                0.0f,
-                false);
     }
 
 }

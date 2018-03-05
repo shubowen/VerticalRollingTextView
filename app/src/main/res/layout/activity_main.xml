@@ -31,7 +31,7 @@
             android:textColor="#FF0000"
             android:textSize="16sp"
             app:animInterval="2000"
-            app:maxTextSize="13dp"/>
+            app:maxTextSize="16dp"/>
 
     </LinearLayout>
 
@@ -87,11 +87,11 @@
     </LinearLayout>
 
     <Button
-        android:onClick="changeAdapter"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_marginTop="30dp"
         android:gravity="center"
+        android:onClick="changeAdapter"
         android:text="切换Adpter"
         android:textSize="15dp"/>
 
