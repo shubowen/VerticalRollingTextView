@@ -51,14 +51,14 @@ public class MainActivity extends AppCompatActivity implements VerticalRollingTe
                 Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
 
         CharSequence[] mStrs = {
-                "君不见，黄河之水天上来，奔流到海不复回",
+                "君不见，黄河之水\ud83d\ude01天上来，奔流到海不复回",
+                "导师李: \uD83D\uDE0D\uD83D\uDE18\uD83D\uDE18\uD83D\uDE18\uD83D\uDE18",
                 span,
                 span1,
                 "天生我材必有用，千金散尽还复来",
                 "烹羊宰牛且为乐，会须一饮三百杯",
                 "岑夫子，丹丘生，将进酒，杯莫停"
         };
-
 
         mDataSet = Arrays.asList(mStrs);
 

@@ -54,9 +54,6 @@ public class VerticalRollingTextView extends View {
 
     private float mScrollY;
 
-    /*防止动画结束的回调触发以后动画继续进行出现的错乱问题*/
-    private boolean mAnimationEnded;
-
     private boolean isRunning;
     /*动画时间*/
     private int mDuration = 1000;
@@ -67,6 +64,7 @@ public class VerticalRollingTextView extends View {
     private int mTextColor;
 
     private int itemHeight;
+
     private int mTextSize = AUTO_SIZE;
 
     private int itemCount = 1;
