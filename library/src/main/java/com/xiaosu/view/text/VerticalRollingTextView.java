@@ -322,7 +322,6 @@ public class VerticalRollingTextView extends View {
         @Override
         public void run() {
             mAnim.start();
-//            startAnimation(mAnimation);
         }
     };
 
