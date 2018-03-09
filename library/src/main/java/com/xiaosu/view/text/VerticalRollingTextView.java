@@ -330,7 +330,7 @@ public class VerticalRollingTextView extends View {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         removeCallbacks(mRollingTask);
-        if (mAnim.isRunning()) mAnim.cancel();
+        if (null != mAnim && mAnim.isRunning()) mAnim.cancel();
     }
 
     public void setItemCount(int itemCount) {
