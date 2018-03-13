@@ -107,6 +107,7 @@ public class MainActivity extends AppCompatActivity implements VerticalRollingTe
     }
 
     private void init() {
+        mVerticalRollingView.setItemCount(2);
         mVerticalRollingView.setDataSetAdapter(new DataSetAdapter<CharSequence>(mDataSet) {
 
             @Override

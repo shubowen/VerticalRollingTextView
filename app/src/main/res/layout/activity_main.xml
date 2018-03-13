@@ -22,16 +22,25 @@
 
         <com.xiaosu.view.text.VerticalRollingTextView
             android:id="@+id/verticalRollingView"
-            android:layout_width="match_parent"
+            android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_marginLeft="10dp"
+            android:layout_marginRight="10dp"
+            android:layout_weight="1"
             android:duration="5000"
             android:ellipsize="end"
             android:maxLines="3"
             android:textColor="#FF0000"
             android:textSize="16sp"
             app:animInterval="2000"
-            app:maxTextSize="16dp"/>
+            app:maxTextSize="16dp"
+            app:minTextSize="6sp"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:src="@mipmap/gd_xiaoxi"/>
 
     </LinearLayout>
 

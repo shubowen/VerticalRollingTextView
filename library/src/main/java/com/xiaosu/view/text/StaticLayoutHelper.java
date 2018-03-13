@@ -39,24 +39,21 @@ public class StaticLayoutHelper {
                     .setTextDirection(TextDirectionHeuristics.FIRSTSTRONG_LTR)
                     .build();
         } else {
-            /*5.1.1 StaticLayout(CharSequence source, int bufstart, int bufend,
-                                    TextPaint paint, int outerwidth,
-                                    Alignment align, TextDirectionHeuristic textDir,
-                                            float spacingmult, float spacingadd,
-                                    boolean includepad,
-                                    TextUtils.TruncateAt ellipsize, int ellipsizedWidth, int maxLines)*/
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                     return StaticLayout.class.getConstructor(CharSequence.class,
-                            Integer.class,
-                            Integer.class,
+                            int.class,
+                            int.class,
                             TextPaint.class,
-                            Integer.class,
-                            Layout.Alignment.class, TextDirectionHeuristic.class,
-                            Float.class,
-                            Float.class, Boolean.class, TextUtils.TruncateAt.class,
-                            Integer.class,
-                            Integer.class)
+                            int.class,
+                            Layout.Alignment.class,
+                            TextDirectionHeuristic.class,
+                            float.class,
+                            float.class,
+                            boolean.class,
+                            TextUtils.TruncateAt.class,
+                            int.class,
+                            int.class)
                             .newInstance(
                                     source,
                                     0,
@@ -76,7 +73,13 @@ public class StaticLayoutHelper {
                 e.printStackTrace();
             }
         }
-        return null;
+
+        return new StaticLayout(source, 0, source.length(), paint, width, align, spacingmult,
+                spacingadd,
+                includepad,
+                ellipsize,
+                ellipsizedWidth);
     }
+
 
 }

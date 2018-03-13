@@ -17,7 +17,7 @@ publish {
     userOrg = 'xiaosu'
     groupId = 'com.xiaosu'
     artifactId = 'VerticalRollingTextView'
-    publishVersion = '2.0.7'
+    publishVersion = '2.0.8'
     desc = '竖直方向无限循环滚动显示单行文本的控件'
     website = 'https://github.com/shubowen/VerticalRollingTextView'
 }
