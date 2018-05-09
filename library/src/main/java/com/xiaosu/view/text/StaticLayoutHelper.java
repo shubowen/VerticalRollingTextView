@@ -41,7 +41,8 @@ public class StaticLayoutHelper {
         } else {
             try {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
-                    return StaticLayout.class.getConstructor(CharSequence.class,
+                    return StaticLayout.class.getConstructor(
+                            CharSequence.class,
                             int.class,
                             int.class,
                             TextPaint.class,

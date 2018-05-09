@@ -57,7 +57,6 @@ public class MultiLineStrategy implements IStrategy {
                 target = layout;
                 bestSizeIndex = lowIndex;
                 lowIndex = sizeToTryIndex + 1;
-//                Log.d(TAG, "SizeFitsInSpace: " + mAutoSizeTextSizesInPx[sizeToTryIndex]);
             } else {
                 highIndex = sizeToTryIndex - 1;
                 bestSizeIndex = highIndex;

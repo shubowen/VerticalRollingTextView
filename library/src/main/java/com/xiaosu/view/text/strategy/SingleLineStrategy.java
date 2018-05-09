@@ -5,6 +5,7 @@ import android.text.Layout;
 import android.text.TextPaint;
 import android.text.TextUtils;
 
+import com.xiaosu.view.text.StaticLayoutHelper;
 import com.xiaosu.view.text.VerticalRollingTextView;
 
 /**
@@ -28,17 +29,33 @@ public class SingleLineStrategy implements IStrategy {
 
         BoringLayout.Metrics metrics = BoringLayout.isBoring(text, paint);
 
-        Layout layout = new BoringLayout(
-                text,
-                paint,
-                width,
-                Layout.Alignment.ALIGN_NORMAL,
-                1.0f,
-                0.0f,
-                metrics,
-                false,
-                truncateAt,
-                width);
+        Layout layout;
+
+        if (null == metrics) {
+            layout = StaticLayoutHelper.createStaticLayout(
+                    text,
+                    paint,
+                    width,
+                    Layout.Alignment.ALIGN_NORMAL,
+                    1.0f,
+                    0.0f,
+                    false,
+                    truncateAt,
+                    width,
+                    1);
+        } else {
+            layout = new BoringLayout(
+                    text,
+                    paint,
+                    width,
+                    Layout.Alignment.ALIGN_NORMAL,
+                    1.0f,
+                    0.0f,
+                    metrics,
+                    false,
+                    truncateAt,
+                    width);
+        }
 
         VerticalRollingTextView.LayoutWithTextSize lt = new VerticalRollingTextView.LayoutWithTextSize();
         lt.layout = layout;
